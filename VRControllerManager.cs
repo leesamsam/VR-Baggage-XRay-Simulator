@@ -1,107 +1,29 @@
 using UnityEngine;
-using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
 
-public class BaggageMeasurement : MonoBehaviour
+public class VRControllerManager : MonoBehaviour
 {
-    [Header("Measurement Settings")]
-    public Vector3 maxAllowedSize = new Vector3(0.56f, 0.36f, 0.23f); // in meters
-    public float tolerance = 0.02f; // 2cm tolerance
+    public XRController leftController;
+    public XRController rightController;
+    public InputHelpers.Button grabButton;
     
-    [Header("References")]
-    public Transform measurementBox;
-    public Material validMaterial;
-    public Material invalidMaterial;
-    public AudioClip successSound;
-    public AudioClip failSound;
-    
-    private Vector3 baggageSize;
-    private bool isMeasuring = false;
-    private AudioSource audioSource;
-    
-    void Start()
+    void Update()
     {
-        audioSource = GetComponent<AudioSource>();
-        UpdateMeasurementBoxVisual();
+        // Check for grab input
+        if (CheckGrabInput(leftController))
+            HandleGrab(leftController);
+        if (CheckGrabInput(rightController))
+            HandleGrab(rightController);
     }
     
-    void OnTriggerEnter(Collider other)
+    bool CheckGrabInput(XRController controller)
     {
-        if (other.CompareTag("Baggage"))
-        {
-            StartMeasurement(other.gameObject);
-        }
+        controller.inputDevice.IsPressed(grabButton, out bool isPressed);
+        return isPressed;
     }
     
-    void OnTriggerExit(Collider other)
+    void HandleGrab(XRController controller)
     {
-        if (other.CompareTag("Baggage"))
-        {
-            StopMeasurement();
-        }
-    }
-    
-    void StartMeasurement(GameObject baggage)
-    {
-        isMeasuring = true;
-        CalculateBaggageSize(baggage);
-        CheckSizeValidity();
-    }
-    
-    void CalculateBaggageSize(GameObject baggage)
-    {
-        Renderer renderer = baggage.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            baggageSize = renderer.bounds.size;
-        }
-        else
-        {
-            // Fallback: use collider bounds
-            Collider collider = baggage.GetComponent<Collider>();
-            if (collider != null)
-            {
-                baggageSize = collider.bounds.size;
-            }
-        }
-    }
-    
-    void CheckSizeValidity()
-    {
-        bool isValid = IsSizeValid();
-        
-        // Update visual feedback
-        MeshRenderer boxRenderer = measurementBox.GetComponent<MeshRenderer>();
-        boxRenderer.material = isValid ? validMaterial : invalidMaterial;
-        
-        // Play sound
-        if (audioSource != null)
-        {
-            audioSource.clip = isValid ? successSound : failSound;
-            audioSource.Play();
-        }
-        
-        // Show result in console (replace with your UI)
-        Debug.Log($"Baggage Size: {baggageSize.x * 100:F1}cm x {baggageSize.y * 100:F1}cm x {baggageSize.z * 100:F1}cm");
-        Debug.Log(isValid ? "PASS - Hand Carry Allowed" : "FAIL - Must Check In");
-    }
-    
-    bool IsSizeValid()
-    {
-        return baggageSize.x <= maxAllowedSize.x + tolerance &&
-               baggageSize.y <= maxAllowedSize.y + tolerance &&
-               baggageSize.z <= maxAllowedSize.z + tolerance;
-    }
-    
-    void UpdateMeasurementBoxVisual()
-    {
-        if (measurementBox != null)
-        {
-            measurementBox.localScale = maxAllowedSize;
-        }
-    }
-    
-    void StopMeasurement()
-    {
-        isMeasuring = false;
+        // Handle grab functionality
     }
 }
