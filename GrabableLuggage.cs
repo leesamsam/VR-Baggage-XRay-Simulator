@@ -1,40 +1,26 @@
-using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
-
-public class GrabbableBaggage : XRGrabInteractable
+public class GrabableLuggage : MonoBehaviour
 {
-    [Header("Baggage Settings")]
-    public BaggageType type = BaggageType.CarryOn;
+    private Rigidbody rb;
+    private XRGrabInteractable grabInteractable;
     
     void Start()
     {
-        // Configure grab interactions
-        onSelectEntered.AddListener(OnGrabbed);
-        onSelectExited.AddListener(OnReleased);
+        rb = GetComponent<Rigidbody>();
+        grabInteractable = GetComponent<XRGrabInteractable>();
+        
+        grabInteractable.onSelectEntered.AddListener(OnGrabbed);
+        grabInteractable.onSelectExited.AddListener(OnReleased);
     }
     
     void OnGrabbed(XRBaseInteractor interactor)
     {
-        // Visual feedback when grabbed
-        GetComponent<Rigidbody>().isKinematic = false;
+        // Handle when object is grabbed
+        rb.isKinematic = true;
     }
     
     void OnReleased(XRBaseInteractor interactor)
     {
-        // Reset physics
-        GetComponent<Rigidbody>().isKinematic = false;
+        // Handle when object is released
+        rb.isKinematic = false;
     }
-    
-    protected override void OnDestroy()
-    {
-        onSelectEntered.RemoveListener(OnGrabbed);
-        onSelectExited.RemoveListener(OnReleased);
-        base.OnDestroy();
-    }
-}
-
-public enum BaggageType
-{
-    CarryOn,
-    CheckIn
 }
